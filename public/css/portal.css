@@ -126,16 +126,10 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
 }
 
 /* ---- Employee homepage ---- */
-.topbar { background: var(--navy); color: #fff; font-size: 13px; }
-.topbar .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 40px; }
-.topbar-label { color: rgb(255 255 255 / 70%); letter-spacing: .08em; text-transform: uppercase; font-weight: 500; }
-.topbar-links { display: flex; align-items: center; gap: 18px; }
-.topbar-links > a { color: #fff; text-decoration: none; text-transform: uppercase; letter-spacing: .06em; font-weight: 500; }
-.topbar-links > a:hover { color: #fff; text-decoration: underline; }
-
 .site-header { background: var(--header-bg); border-bottom: 1px solid var(--line); box-shadow: 0 2px 12px rgb(7 19 41 / 5%); }
 .site-header .wrap { display: flex; align-items: center; gap: 18px; min-height: 76px; }
 .site-header .divider { width: 1px; height: 28px; background: var(--line); flex: none; }
+.header-prefs { margin-left: auto; color: var(--text); }
 .site-name { font-size: 15px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .hero {
@@ -322,8 +316,7 @@ legend { font-weight: 500; font-size: 14px; padding: 0; margin-bottom: 8px; }
 }
 @media (max-width: 600px) {
   .wrap { padding-inline: 16px; }
-  .topbar-label { display: none; }
-  .topbar .wrap { justify-content: flex-end; }
+  .site-header .divider, .site-name { display: none; }
   .site-header .wrap { min-height: 64px; gap: 12px; }
   .site-header .logo { height: 24px; }
   .hero .wrap { padding-block: 40px 44px; }

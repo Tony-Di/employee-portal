@@ -5,17 +5,12 @@
   const visibleCount = sites.filter(s => matches.has(s.id)).length;
 %>
 <%- include('partials/head', { title }) %>
-<div class="topbar">
-  <div class="wrap">
-    <span class="topbar-label"><%= t('SEG Solar 员工内部门户', 'SEG Solar internal portal') %></span>
-    <div class="topbar-links"><%- include('partials/prefs') %></div>
-  </div>
-</div>
 <header class="site-header">
   <div class="wrap">
     <a href="/" aria-label="<%= title %>"><%- include('partials/brand-logo', { customLogo: settings.logo_url, alt: title }) %></a>
     <span class="divider" aria-hidden="true"></span>
     <span class="site-name"><%= title %></span>
+    <div class="header-prefs"><%- include('partials/prefs') %></div>
   </div>
 </header>
 
