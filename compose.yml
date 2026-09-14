@@ -1,0 +1,30 @@
+# Production: one portal container that joins existing Docker networks.
+# It does not start a database; DATABASE_URL points at an existing PostgreSQL server.
+name: employee-portal
+services:
+  portal:
+    build: .
+    image: employee-portal:latest
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3100
+      DATA_DIR: /app/data
+    volumes:
+      - portal_uploads:/app/data
+    networks:
+      - database
+      - proxy
+
+volumes:
+  portal_uploads:
+
+networks:
+  database:
+    name: ${DB_NETWORK:?Set DB_NETWORK to the Docker network of the PostgreSQL container}
+    external: true
+  proxy:
+    name: ${PROXY_NETWORK:?Set PROXY_NETWORK to the Docker network of the reverse proxy}
+    external: true

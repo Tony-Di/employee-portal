@@ -1,0 +1,69 @@
+<%- include('../partials/admin-head', { title: t('分类', 'Categories') }) %>
+<%
+  const err = field => errors[field] ? tp(errors[field]) : '';
+  const editingId = editing ? Number(editing.id) : null;
+%>
+<div class="page-head">
+  <div>
+    <h1><%= t('分类', 'Categories') %></h1>
+    <p class="hint"><%= t('员工首页只显示包含可见网站的分类。网站可以暂时不分类。', 'The portal only shows categories that contain visible sites. Sites can stay uncategorised.') %></p>
+  </div>
+</div>
+
+<form class="panel editor-form" method="post" action="/admin/categories">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <h2 class="panel-title"><%= t('添加分类', 'Add category') %></h2>
+  <div class="field-row">
+    <div class="field<%= !editing && err('name') ? ' has-error' : '' %>">
+      <label for="new-name"><%= t('名称', 'Name') %></label>
+      <input id="new-name" name="name" value="<%= values.name || '' %>" maxlength="80">
+    </div>
+    <div class="field">
+      <label for="new-name-en"><%= t('英文名称', 'English name') %></label>
+      <input id="new-name-en" name="name_en" value="<%= values.name_en || '' %>" maxlength="80">
+    </div>
+  </div>
+  <% if (!editing && err('name')) { %><p class="field-error"><%= err('name') %></p><% } %>
+  <div><button class="button primary" type="submit"><%= t('添加', 'Add') %></button></div>
+</form>
+
+<h2 class="panel-title section-gap"><%= t('全部分类', 'All categories') %></h2>
+<% if (!categories.length) { %>
+  <p class="empty-state"><%= t('还没有分类。', 'No categories yet.') %></p>
+<% } else { %>
+<div class="panel table-wrap">
+  <table class="table">
+    <thead><tr><th><%= t('名称 / 英文名称', 'Name / English name') %></th><th><%= t('网站数', 'Sites') %></th><th><%= t('操作', 'Actions') %></th></tr></thead>
+    <tbody>
+    <% categories.forEach((c, index) => { const current = editingId === c.id ? editing : c; %>
+      <tr>
+        <td>
+          <form class="inline-form" method="post" action="/admin/categories/<%= c.id %>">
+            <input type="hidden" name="_csrf" value="<%= csrf %>">
+            <input name="name" value="<%= current.name %>" maxlength="80" aria-label="<%= t('名称', 'Name') %>">
+            <input name="name_en" value="<%= current.name_en %>" maxlength="80" aria-label="<%= t('英文名称', 'English name') %>">
+            <button class="button small" type="submit"><%= t('保存', 'Save') %></button>
+          </form>
+          <% if (editingId === c.id && err('name')) { %><p class="field-error"><%= err('name') %></p><% } %>
+        </td>
+        <td><%= c.site_count %></td>
+        <td>
+          <div class="row-actions">
+            <form method="post" action="/admin/categories/<%= c.id %>/move">
+              <input type="hidden" name="_csrf" value="<%= csrf %>">
+              <button class="button small" type="submit" name="direction" value="up" aria-label="<%= t('上移', 'Move up') %>: <%= pick(c, 'name') %>"<%= index === 0 ? ' disabled' : '' %>>↑</button>
+              <button class="button small" type="submit" name="direction" value="down" aria-label="<%= t('下移', 'Move down') %>: <%= pick(c, 'name') %>"<%= index === categories.length - 1 ? ' disabled' : '' %>>↓</button>
+            </form>
+            <form method="post" action="/admin/categories/<%= c.id %>/delete" data-confirm="<%= t('确定删除这个分类吗？', 'Delete this category?') %>">
+              <input type="hidden" name="_csrf" value="<%= csrf %>">
+              <button class="button small danger" type="submit"<% if (c.site_count) { %> title="<%= t('该分类下还有网站', 'Sites still use this category') %>"<% } %>><%= t('删除', 'Delete') %></button>
+            </form>
+          </div>
+        </td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+</div>
+<% } %>
+<%- include('../partials/admin-foot') %>

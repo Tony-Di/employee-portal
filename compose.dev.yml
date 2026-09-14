@@ -1,0 +1,19 @@
+name: employee-portal-dev
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: portal_dev
+      POSTGRES_PASSWORD: portal_dev
+      POSTGRES_DB: employee_portal
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - portal_dev_database:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U portal_dev -d employee_portal"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+volumes:
+  portal_dev_database:

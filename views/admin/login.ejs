@@ -1,0 +1,28 @@
+<%- include('../partials/head', { title: t('管理员登录', 'Admin sign in'), bodyClass: 'auth' }) %>
+<main class="auth-card">
+  <div class="auth-brand"><%- include('../partials/brand-logo') %></div>
+  <h1><%= t('管理员登录', 'Admin sign in') %></h1>
+  <p class="muted"><%= t('维护员工门户中的网站目录。', 'Maintain the employee portal directory.') %></p>
+  <% if (noAdmins) { %>
+  <div class="setup-hint" role="note">
+    <strong><%= t('还没有管理员账号', 'No admin account exists yet') %></strong>
+    <p><%= t('管理员账号不能在网页上注册，需要由负责部署的人在服务器上创建：', 'Admin accounts are not self-registered. Whoever runs the server creates the first one:') %></p>
+    <code>npm run admin -- create --email you@segsolar.com --name "Your Name"</code>
+    <p><%= t('命令会提示输入密码（至少 12 位）。创建后回到这里登录。', 'It prompts for a password (12+ characters). Then sign in here.') %></p>
+  </div>
+  <% } %>
+  <% if (error) { %><p class="form-error" role="alert"><%= error %></p><% } %>
+  <form method="post" action="/admin/login" class="stack">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <label><%= t('邮箱', 'Email') %>
+      <input type="email" name="email" value="<%= email %>" autocomplete="username" required maxlength="254" autofocus>
+    </label>
+    <label><%= t('密码', 'Password') %>
+      <input type="password" name="password" autocomplete="current-password" required maxlength="128">
+    </label>
+    <button class="button primary" type="submit"><%= t('登录', 'Sign in') %></button>
+  </form>
+  <div class="auth-foot"><%- include('../partials/prefs') %><a href="/"><%= t('返回首页', 'Back to portal') %></a></div>
+</main>
+</body>
+</html>

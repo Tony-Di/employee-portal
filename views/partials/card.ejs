@@ -1,0 +1,23 @@
+<%
+  const name = pick(site, 'name');
+  const description = pick(site, 'description');
+  const categoryName = category ? pick(category, 'name') : '';
+  const placeholder = site.status !== 'published' || !site.url;
+%>
+<article class="card<%= placeholder ? ' is-placeholder' : '' %>">
+  <div class="card-head">
+    <span class="card-icon" data-preview="icon">
+      <% if (site.icon_url) { %><img src="<%= site.icon_url %>" alt="" width="48" height="48"><% } else { %><%- include('icon', { key: site.icon_key }) %><% } %>
+    </span>
+    <% if (categoryName) { %><span class="card-category" data-preview="category"><%= categoryName %></span><% } %>
+  </div>
+  <h2 class="card-title" data-preview="name"><%= name %></h2>
+  <p class="card-description" data-preview="description"><%= description %></p>
+  <div class="card-foot">
+    <% if (placeholder) { %>
+      <span class="card-open" aria-disabled="true"><%= t('待补充', 'Coming soon') %></span>
+    <% } else { %>
+      <a class="card-open" href="<%= site.url %>"<% if (site.open_in_new_tab) { %> target="_blank" rel="noopener noreferrer"<% } %>><%= t('打开', 'Open') %> <span class="arrow" aria-hidden="true">→</span><% if (site.open_in_new_tab) { %><span class="visually-hidden"> <%= t('（新标签页）', '(opens in a new tab)') %></span><% } %></a>
+    <% } %>
+  </div>
+</article>

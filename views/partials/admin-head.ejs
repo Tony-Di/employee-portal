@@ -1,0 +1,22 @@
+<%- include('head', { title: title + ' · ' + t('门户管理', 'Portal admin'), bodyClass: 'admin' }) %>
+<header class="admin-bar">
+  <div class="wrap">
+    <a class="admin-brand" href="/admin/sites"><%- include('brand-logo', { variant: 'white' }) %><span><%= t('门户管理', 'Portal admin') %></span></a>
+    <nav class="admin-nav" aria-label="<%= t('管理导航', 'Admin navigation') %>">
+      <a href="/admin/sites" <%- path.startsWith('/admin/sites') ? 'aria-current="page"' : '' %>><%= t('网站', 'Sites') %></a>
+      <a href="/admin/categories" <%- path.startsWith('/admin/categories') ? 'aria-current="page"' : '' %>><%= t('分类', 'Categories') %></a>
+      <a href="/admin/settings" <%- path.startsWith('/admin/settings') ? 'aria-current="page"' : '' %>><%= t('门户设置', 'Settings') %></a>
+    </nav>
+    <div class="admin-user">
+      <a href="/" target="_blank" rel="noopener"><%= t('查看首页', 'View portal') %></a>
+      <%- include('prefs') %>
+      <span class="muted"><%= admin.name %></span>
+      <form method="post" action="/admin/logout">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <button class="link-button" type="submit"><%= t('退出', 'Sign out') %></button>
+      </form>
+    </div>
+  </div>
+</header>
+<main class="admin-main">
+<% if (typeof notice !== 'undefined' && notice) { %><p class="notice<%= notice.type === 'error' ? ' error' : '' %>" role="<%= notice.type === 'error' ? 'alert' : 'status' %>"><%= tp(notice.message) %></p><% } %>

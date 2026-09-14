@@ -1,0 +1,71 @@
+<%- include('../partials/admin-head', { title: t('网站', 'Sites') }) %>
+<%
+  const returnTo = '/admin/sites' + (filtered ? '?' + new URLSearchParams({ ...(q && { q }), ...(status && { status }) }) : '');
+  const statusActions = {
+    published: [['hidden', t('隐藏', 'Hide')]],
+    hidden: [['published', t('重新上架', 'Republish')]],
+    draft: [['published', t('发布', 'Publish')]],
+    placeholder: [['published', t('发布', 'Publish')], ['hidden', t('隐藏', 'Hide')]],
+  };
+%>
+<div class="page-head">
+  <div>
+    <h1><%= t('网站', 'Sites') %></h1>
+    <p class="hint"><%= t('员工首页只显示“已发布”和“占位”的网站，顺序与下方一致。', 'The portal shows published and placeholder sites, in the order below.') %></p>
+  </div>
+  <a class="button primary" href="/admin/sites/new">+ <%= t('新增网站', 'Add site') %></a>
+</div>
+
+<form class="toolbar" method="get" action="/admin/sites" role="search">
+  <label class="visually-hidden" for="site-q"><%= t('搜索', 'Search') %></label>
+  <input id="site-q" type="search" name="q" value="<%= q %>" placeholder="<%= t('搜索名称、地址或关键词', 'Search name, address or keyword') %>">
+  <label class="visually-hidden" for="site-status"><%= t('状态', 'Status') %></label>
+  <select id="site-status" name="status">
+    <option value=""><%= t('全部状态', 'All statuses') %></option>
+    <% for (const [value, label] of [['published', t('已发布', 'Published')], ['placeholder', t('占位', 'Placeholder')], ['draft', t('草稿', 'Draft')], ['hidden', t('已隐藏', 'Hidden')]]) { %>
+    <option value="<%= value %>"<%= status === value ? ' selected' : '' %>><%= label %></option>
+    <% } %>
+  </select>
+  <button class="button" type="submit"><%= t('筛选', 'Filter') %></button>
+  <% if (filtered) { %><a class="button" href="/admin/sites"><%= t('清除', 'Clear') %></a><% } %>
+</form>
+
+<% if (!sites.length) { %>
+  <p class="empty-state"><%= filtered ? t('没有符合条件的网站。', 'No sites match these filters.') : t('还没有网站，点击“新增网站”开始。', 'No sites yet. Choose “Add site” to start.') %></p>
+<% } else { %>
+  <% if (filtered) { %><p class="hint"><%= t('筛选时不能拖动排序；清除筛选后可拖动，或使用上移/下移按钮。', 'Clear filters to drag and reorder, or use the move buttons.') %></p><% } %>
+  <p class="notice error" role="alert" data-order-error hidden><%= t('排序保存失败，页面将刷新以显示当前顺序。', 'Could not save the order. The page will reload with the current order.') %></p>
+  <ul class="panel site-list" <%- filtered ? '' : 'data-sortable' %> aria-label="<%= t('网站列表', 'Site list') %>">
+    <% sites.forEach((site, index) => { %>
+    <li class="site-row" data-id="<%= site.id %>">
+      <% if (!filtered) { %>
+      <button class="drag-handle" type="button" draggable="true" aria-label="<%= t('拖动排序', 'Drag to reorder') %>" title="<%= t('拖动排序', 'Drag to reorder') %>">⠿</button>
+      <% } else { %><span></span><% } %>
+      <span class="card-icon">
+        <% if (site.media_filename) { %><img src="/media/<%= site.media_filename %>" alt="" width="40" height="40"><% } else { %><%- include('../partials/icon', { key: site.icon_key }) %><% } %>
+      </span>
+      <div class="site-main">
+        <h2><a href="/admin/sites/<%= site.id %>/edit"><%= pick(site, 'name') %></a> <%- include('../partials/status', { status: site.status }) %></h2>
+        <div class="site-meta">
+          <% if (site.category_id) { %><%= pick({ name: site.category_name, name_en: site.category_name_en }, 'name') %> · <% } %><%= site.url || t('未填写地址', 'No address yet') %>
+        </div>
+      </div>
+      <div class="row-actions">
+        <a class="button small" href="/admin/sites/<%= site.id %>/edit"><%= t('编辑', 'Edit') %></a>
+        <% for (const [value, label] of statusActions[site.status] || []) { %>
+        <form method="post" action="/admin/sites/<%= site.id %>/status">
+          <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="return_to" value="<%= returnTo %>">
+          <button class="button small" type="submit" name="status" value="<%= value %>"><%= label %></button>
+        </form>
+        <% } %>
+        <form method="post" action="/admin/sites/<%= site.id %>/move">
+          <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="return_to" value="<%= returnTo %>">
+          <button class="button small" type="submit" name="direction" value="up" aria-label="<%= t('上移', 'Move up') %>: <%= pick(site, 'name') %>"<%= index === 0 && !filtered ? ' disabled' : '' %>>↑</button>
+          <button class="button small" type="submit" name="direction" value="down" aria-label="<%= t('下移', 'Move down') %>: <%= pick(site, 'name') %>"<%= index === sites.length - 1 && !filtered ? ' disabled' : '' %>>↓</button>
+        </form>
+      </div>
+    </li>
+    <% }) %>
+  </ul>
+<% } %>
+<%- include('../partials/admin-foot') %>

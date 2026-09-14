@@ -1,0 +1,138 @@
+<%
+  const last = v => (Array.isArray(v) ? v.at(-1) : v);
+  const val = field => { const v = last(values[field]); return v === null || v === undefined ? '' : String(v); };
+  const checked = field => { const v = last(values[field]); return v === true || ['1', 'true', 'on'].includes(String(v)); };
+  const err = field => errors[field] ? tp(errors[field]) : '';
+  const heading = site ? t('编辑网站', 'Edit site') : t('新增网站', 'Add site');
+  const currentStatus = site ? site.status : 'draft';
+  const mediaId = val('media_id');
+  const currentImage = site && site.media_filename && mediaId === site.media_id ? `/media/${site.media_filename}` : null;
+  const previewCategory = categories.find(c => String(c.id) === val('category_id'));
+  const previewSite = {
+    name: val('name'), name_en: val('name_en'), description: val('description'), description_en: val('description_en'),
+    icon_key: val('icon_key') || 'globe', icon_url: currentImage, url: val('url'), status: 'published', open_in_new_tab: checked('open_in_new_tab'),
+  };
+  if (!previewSite.name && !previewSite.name_en) previewSite.name = t('网站名称', 'Site name');
+  const buttons = {
+    new: [['published', t('发布', 'Publish'), true], ['draft', t('保存草稿', 'Save draft')], ['placeholder', t('保存为占位', 'Save as placeholder')]],
+    published: [['published', t('保存并更新首页', 'Save and update portal'), true]],
+    draft: [['published', t('发布', 'Publish'), true], ['draft', t('保存草稿', 'Save draft')], ['placeholder', t('保存为占位', 'Save as placeholder')]],
+    placeholder: [['placeholder', t('保存占位', 'Save placeholder'), true], ['published', t('发布', 'Publish')]],
+    hidden: [['hidden', t('保存（保持隐藏）', 'Save (stay hidden)'), true], ['published', t('保存并重新上架', 'Save and republish')]],
+  }[site ? currentStatus : 'new'];
+%>
+<%- include('../partials/admin-head', { title: heading }) %>
+<div class="page-head">
+  <div>
+    <p class="hint"><a class="back-link" href="/admin/sites">← <%= t('返回网站列表', 'Back to sites') %></a></p>
+    <h1><%= heading %> <% if (site) { %><%- include('../partials/status', { status: currentStatus }) %><% } %></h1>
+  </div>
+</div>
+
+<% if (conflict) { %><p class="notice error" role="alert"><%= tp(conflict) %></p><% } %>
+<% if (Object.keys(errors).length && !conflict) { %><p class="notice error" role="alert"><%= t('请修正标出的内容后再保存。', 'Fix the highlighted fields, then save again.') %></p><% } %>
+
+<div class="editor">
+  <form class="panel editor-form" method="post" action="<%= site ? `/admin/sites/${site.id}` : '/admin/sites' %>" enctype="multipart/form-data" data-site-form novalidate>
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <% if (site) { %><input type="hidden" name="version" value="<%= site.version %>"><% } %>
+    <input type="hidden" name="media_id" value="<%= mediaId %>">
+
+    <div class="field-row">
+      <div class="field<%= err('name') ? ' has-error' : '' %>">
+        <label for="name"><%= t('名称', 'Name') %></label>
+        <input id="name" name="name" value="<%= val('name') %>" maxlength="100" data-preview-source="name">
+      </div>
+      <div class="field">
+        <label for="name_en"><%= t('英文名称', 'English name') %></label>
+        <input id="name_en" name="name_en" value="<%= val('name_en') %>" maxlength="100" data-preview-source="name_en">
+      </div>
+      <% if (err('name')) { %><p class="field-error"><%= err('name') %></p><% } %>
+    </div>
+
+    <div class="field-row">
+      <div class="field<%= err('description') ? ' has-error' : '' %>">
+        <label for="description"><%= t('简介', 'Description') %></label>
+        <textarea id="description" name="description" maxlength="240" data-preview-source="description"><%= val('description') %></textarea>
+        <% if (err('description')) { %><p class="field-error"><%= err('description') %></p><% } %>
+      </div>
+      <div class="field<%= err('description_en') ? ' has-error' : '' %>">
+        <label for="description_en"><%= t('英文简介', 'English description') %></label>
+        <textarea id="description_en" name="description_en" maxlength="240" data-preview-source="description_en"><%= val('description_en') %></textarea>
+        <% if (err('description_en')) { %><p class="field-error"><%= err('description_en') %></p><% } %>
+      </div>
+    </div>
+    <p class="hint"><%= t('至少填写一种语言；员工切换到另一种语言时，会显示已填写的内容。', 'Fill in at least one language; the other language falls back to it.') %></p>
+
+    <div class="field<%= err('url') ? ' has-error' : '' %>">
+      <label for="url"><%= t('网站地址', 'Address') %></label>
+      <input id="url" name="url" type="url" inputmode="url" value="<%= val('url') %>" maxlength="2048" placeholder="https://" data-preview-source="url">
+      <% if (err('url')) { %><p class="field-error"><%= err('url') %></p><% } %>
+      <p class="hint"><%= t('发布前必填。还没有地址时，可以先保存为占位。', 'Required to publish. Save as a placeholder until the address is ready.') %></p>
+    </div>
+
+    <fieldset class="field<%= err('icon_key') ? ' has-error' : '' %>">
+      <legend><%= t('图标', 'Icon') %></legend>
+      <div class="icon-picker">
+        <% for (const key of Object.keys(icons)) { %>
+        <label class="icon-option" title="<%= tp(iconLabels[key]) %>">
+          <input type="radio" name="icon_key" value="<%= key %>"<%= (val('icon_key') || 'globe') === key ? ' checked' : '' %> data-preview-source="icon_key">
+          <span><%- include('../partials/icon', { key }) %><span class="visually-hidden"><%= tp(iconLabels[key]) %></span></span>
+        </label>
+        <% } %>
+      </div>
+      <% if (err('icon_key')) { %><p class="field-error"><%= err('icon_key') %></p><% } %>
+    </fieldset>
+
+    <div class="field<%= err('file') || err('media_id') ? ' has-error' : '' %>">
+      <label for="icon_file"><%= t('或上传图标图片', 'Or upload an icon image') %></label>
+      <% if (mediaId) { %>
+      <div class="upload-current">
+        <% if (currentImage) { %><img src="<%= currentImage %>" alt=""><% } %>
+        <label class="check"><input type="checkbox" name="remove_icon" value="1" data-preview-source="remove_icon"> <%= t('移除已上传的图片，改用上方图标', 'Remove the uploaded image and use the icon above') %></label>
+      </div>
+      <% } %>
+      <input id="icon_file" name="icon_file" type="file" accept="image/png,image/jpeg,image/webp" data-preview-source="icon_file">
+      <p class="hint"><%= t('PNG、JPEG 或 WebP，不超过 2 MB，建议正方形。上传后优先显示图片。', 'PNG, JPEG or WebP up to 2 MB, ideally square. An uploaded image replaces the icon.') %></p>
+      <% if (err('file') || err('media_id')) { %><p class="field-error"><%= err('file') || err('media_id') %></p><% } %>
+    </div>
+
+    <div class="field-row">
+      <div class="field<%= err('category_id') ? ' has-error' : '' %>">
+        <label for="category_id"><%= t('分类', 'Category') %></label>
+        <select id="category_id" name="category_id" data-preview-source="category_id">
+          <option value=""><%= t('不分类', 'No category') %></option>
+          <% for (const c of categories) { %><option value="<%= c.id %>"<%= val('category_id') === String(c.id) ? ' selected' : '' %>><%= pick(c, 'name') %></option><% } %>
+        </select>
+        <% if (err('category_id')) { %><p class="field-error"><%= err('category_id') %></p><% } %>
+        <% if (!categories.length) { %><p class="hint"><a href="/admin/categories"><%= t('先去添加分类', 'Add categories first') %></a></p><% } %>
+      </div>
+      <div class="field<%= err('keywords') ? ' has-error' : '' %>">
+        <label for="keywords"><%= t('搜索关键词', 'Search keywords') %></label>
+        <input id="keywords" name="keywords" value="<%= val('keywords') %>" maxlength="300" placeholder="<%= t('如：报修, 电脑, 网络', 'e.g. repair, laptop, network') %>">
+        <% if (err('keywords')) { %><p class="field-error"><%= err('keywords') %></p><% } %>
+      </div>
+    </div>
+
+    <div class="field">
+      <input type="hidden" name="open_in_new_tab" value="0">
+      <label class="check"><input type="checkbox" name="open_in_new_tab" value="1"<%= checked('open_in_new_tab') ? ' checked' : '' %>> <%= t('在新标签页打开（保留门户页面）', 'Open in a new tab (keeps the portal open)') %></label>
+    </div>
+
+    <div class="form-actions">
+      <% for (const [value, label, primary] of buttons) { %>
+      <button class="button<%= primary ? ' primary' : '' %>" type="submit" name="status" value="<%= value %>"><%= label %></button>
+      <% } %>
+      <a class="button" href="/admin/sites"><%= t('取消', 'Cancel') %></a>
+    </div>
+  </form>
+
+  <aside class="preview" aria-label="<%= t('卡片预览', 'Card preview') %>">
+    <span class="preview-label"><%= t('首页卡片预览（未保存前员工看不到）', 'Portal card preview (not visible until saved)') %></span>
+    <div data-preview data-lang="<%= lang %>" data-fallback-name="<%= t('网站名称', 'Site name') %>"
+         data-open-label="<%= t('打开', 'Open') %>" data-soon-label="<%= t('待补充', 'Coming soon') %>">
+      <%- include('../partials/card', { site: previewSite, category: previewCategory }) %>
+    </div>
+  </aside>
+</div>
+<%- include('../partials/admin-foot') %>

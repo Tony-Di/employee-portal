@@ -1,0 +1,69 @@
+<%- include('../partials/admin-head', { title: t('门户设置', 'Settings') }) %>
+<%
+  const val = field => { const v = Array.isArray(values[field]) ? values[field].at(-1) : values[field]; return v === null || v === undefined ? '' : String(v); };
+  const err = field => errors[field] ? tp(errors[field]) : '';
+  const logo = settings.logo_filename ? `/media/${settings.logo_filename}` : null;
+%>
+<div class="page-head">
+  <div>
+    <h1><%= t('门户设置', 'Settings') %></h1>
+    <p class="hint"><%= t('修改员工首页顶部的名称、说明和 Logo。保存后员工刷新首页即可看到。', 'Change the portal title, description and logo. Employees see changes on their next visit.') %></p>
+  </div>
+  <a class="button" href="/" target="_blank" rel="noopener"><%= t('查看首页', 'View portal') %></a>
+</div>
+
+<% if (conflict) { %><p class="notice error" role="alert"><%= tp(conflict) %></p><% } %>
+
+<form class="panel editor-form" method="post" action="/admin/settings" enctype="multipart/form-data" novalidate>
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <input type="hidden" name="version" value="<%= settings.version %>">
+  <div class="field-row">
+    <div class="field<%= err('title') ? ' has-error' : '' %>">
+      <label for="title"><%= t('门户名称', 'Portal title') %></label>
+      <input id="title" name="title" value="<%= val('title') %>" maxlength="80">
+    </div>
+    <div class="field<%= err('title_en') ? ' has-error' : '' %>">
+      <label for="title_en"><%= t('英文门户名称', 'English title') %></label>
+      <input id="title_en" name="title_en" value="<%= val('title_en') %>" maxlength="80">
+    </div>
+  </div>
+  <% if (err('title') || err('title_en')) { %><p class="field-error"><%= err('title') || err('title_en') %></p><% } %>
+
+  <div class="field-row">
+    <div class="field<%= err('description') ? ' has-error' : '' %>">
+      <label for="description"><%= t('首页说明', 'Homepage description') %></label>
+      <textarea id="description" name="description" maxlength="200"><%= val('description') %></textarea>
+      <% if (err('description')) { %><p class="field-error"><%= err('description') %></p><% } %>
+    </div>
+    <div class="field<%= err('description_en') ? ' has-error' : '' %>">
+      <label for="description_en"><%= t('英文首页说明', 'English description') %></label>
+      <textarea id="description_en" name="description_en" maxlength="200"><%= val('description_en') %></textarea>
+      <% if (err('description_en')) { %><p class="field-error"><%= err('description_en') %></p><% } %>
+    </div>
+  </div>
+
+  <div class="field<%= err('file') || err('logo_id') ? ' has-error' : '' %>">
+    <label for="logo_file">Logo</label>
+    <% if (logo) { %>
+    <div class="upload-current">
+      <img class="logo-custom" src="<%= logo %>" alt="">
+      <label class="check"><input type="checkbox" name="remove_logo" value="1"> <%= t('移除 Logo', 'Remove logo') %></label>
+    </div>
+    <% } %>
+    <input id="logo_file" name="logo_file" type="file" accept="image/png,image/jpeg,image/webp">
+    <p class="hint"><%= t('PNG、JPEG 或 WebP，不超过 2 MB。未上传时使用 SEG Solar 官方 Logo。', 'PNG, JPEG or WebP up to 2 MB. Without an upload, the SEG Solar logo is shown.') %></p>
+    <% if (err('file') || err('logo_id')) { %><p class="field-error"><%= err('file') || err('logo_id') %></p><% } %>
+  </div>
+
+  <fieldset class="field<%= err('default_language') ? ' has-error' : '' %>">
+    <legend><%= t('员工首次访问时的语言', 'Default language for first-time visitors') %></legend>
+    <label class="check"><input type="radio" name="default_language" value="zh"<%= val('default_language') !== 'en' ? ' checked' : '' %>> 中文</label>
+    <label class="check"><input type="radio" name="default_language" value="en"<%= val('default_language') === 'en' ? ' checked' : '' %>> English</label>
+    <% if (err('default_language')) { %><p class="field-error"><%= err('default_language') %></p><% } %>
+  </fieldset>
+
+  <div class="form-actions">
+    <button class="button primary" type="submit"><%= t('保存并更新首页', 'Save and update portal') %></button>
+  </div>
+</form>
+<%- include('../partials/admin-foot') %>

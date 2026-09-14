@@ -1,0 +1,9 @@
+<%- include('partials/head', { title: String(status), bodyClass: 'auth' }) %>
+<main class="auth-card">
+  <div class="auth-brand"><%- include('partials/brand-logo') %></div>
+  <h1><%= status %></h1>
+  <p><%= message %></p>
+  <div class="auth-foot"><%- include('partials/prefs') %><a href="/"><%= t('返回首页', 'Back to portal') %></a></div>
+</main>
+</body>
+</html>

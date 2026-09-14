@@ -1,0 +1,81 @@
+<%
+  const title = pick(settings, 'title');
+  const byId = new Map(categories.map(c => [c.id, c]));
+  const searchText = s => [s.name, s.name_en, s.description, s.description_en, s.keywords].join(' ').toLowerCase();
+  const visibleCount = sites.filter(s => matches.has(s.id)).length;
+%>
+<%- include('partials/head', { title }) %>
+<div class="topbar">
+  <div class="wrap">
+    <span class="topbar-label"><%= t('SEG Solar 员工内部门户', 'SEG Solar internal portal') %></span>
+    <div class="topbar-links"><%- include('partials/prefs') %></div>
+  </div>
+</div>
+<header class="site-header">
+  <div class="wrap">
+    <a href="/" aria-label="<%= title %>"><%- include('partials/brand-logo', { customLogo: settings.logo_url, alt: title }) %></a>
+    <span class="divider" aria-hidden="true"></span>
+    <span class="site-name"><%= title %></span>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow">SEG Solar</p>
+    <h1><%= title %></h1>
+    <% if (pick(settings, 'description')) { %><p class="hero-description"><%= pick(settings, 'description') %></p><% } %>
+    <% if (sites.length) { %>
+    <form class="search-row" id="filters" method="get" action="/" role="search" data-filter-form>
+      <label class="visually-hidden" for="q"><%= t('搜索网站', 'Search applications') %></label>
+      <input class="search-input" id="q" type="search" name="q" value="<%= q %>" maxlength="100" autocomplete="off"
+             placeholder="<%= t('搜索名称、用途或关键词，如“报修”', 'Search by name, purpose or keyword') %>">
+      <button class="button primary" type="submit" name="category" value="<%= category %>"><%= t('搜索', 'Search') %></button>
+    </form>
+    <% } %>
+  </div>
+</section>
+
+<main class="catalog wrap" id="catalog">
+  <% if (!sites.length) { %>
+    <p class="empty-state"><%= t('还没有可用的网站。管理员添加后，这里会显示公司常用系统。', 'No applications yet. They will appear here once an administrator adds them.') %></p>
+  <% } else { %>
+    <div class="catalog-head">
+      <div>
+        <p class="eyebrow"><%= t('应用目录', 'Directory') %></p>
+        <h2><%= t('公司常用系统', 'Company applications') %></h2>
+      </div>
+      <% if (categories.length) { %>
+      <div class="chips" role="group" aria-label="<%= t('按分类筛选', 'Filter by category') %>">
+        <button class="chip" type="submit" form="filters" name="category" value="" aria-pressed="<%= category === '' %>"><%= t('全部', 'All') %></button>
+        <% for (const c of categories) { %>
+        <button class="chip" type="submit" form="filters" name="category" value="<%= c.id %>" aria-pressed="<%= category === String(c.id) %>"><%= pick(c, 'name') %></button>
+        <% } %>
+      </div>
+      <% } %>
+    </div>
+
+    <p class="result-status" aria-live="polite" data-result-status
+       data-template-zh="共 {n} 个网站" data-template-en="{n} applications"
+       data-empty-zh="没有找到匹配的网站，换个关键词或分类试试。" data-empty-en="No matching applications. Try another keyword or category."><%=
+      visibleCount ? t(`共 ${visibleCount} 个网站`, `${visibleCount} applications`) : t('没有找到匹配的网站，换个关键词或分类试试。', 'No matching applications. Try another keyword or category.') %></p>
+
+    <ul class="cards" role="list">
+      <% for (const site of sites) { %>
+      <li class="card-item" data-search="<%= searchText(site) %>" data-category="<%= site.category_id ?? '' %>"<%= matches.has(site.id) ? '' : ' hidden' %>>
+        <%- include('partials/card', { site, category: byId.get(site.category_id) }) %>
+      </li>
+      <% } %>
+    </ul>
+  <% } %>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <%- include('partials/brand-logo', { variant: 'white' }) %>
+    <span>© <%= new Date().getFullYear() %> SEG Solar · <%= t('仅供公司内部使用', 'For internal use') %></span>
+    <a href="/admin"><%= t('管理员入口', 'Admin') %></a>
+  </div>
+</footer>
+<script src="/static/js/home.js" defer></script>
+</body>
+</html>
