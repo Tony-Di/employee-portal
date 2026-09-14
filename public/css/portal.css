@@ -317,6 +317,7 @@ legend { font-weight: 500; font-size: 14px; padding: 0; margin-bottom: 8px; }
   .field-row { grid-template-columns: 1fr; }
   .admin-user { margin-left: 0; }
   .admin-nav { align-self: auto; }
+  .admin-bar .wrap { padding-block: 12px; }
   .admin-nav a { padding: 8px 12px; }
 }
 @media (max-width: 600px) {
@@ -335,4 +336,23 @@ legend { font-weight: 500; font-size: 14px; padding: 0; margin-bottom: 8px; }
   .admin-main { padding-inline: 16px; }
   .admin-brand span { display: none; }
   .auth-card { padding: 24px; }
+}
+
+/* Admin accounts */
+.narrow-form { max-width: 560px; }
+.admin-actions { justify-content: flex-start; align-items: flex-start; }
+.reset-password > summary { list-style: none; }
+.reset-password > summary::-webkit-details-marker { display: none; }
+.reset-password[open] > summary { border-color: var(--text); }
+.reset-password form { margin-top: 8px; min-width: 260px; }
+.admin-user > a[aria-current="page"] { text-decoration: underline; }
+@media (max-width: 600px) {
+  /* Tables become one card per row so actions stay reachable without sideways scrolling. */
+  .table.stack-on-phone thead { display: none; }
+  .table.stack-on-phone, .table.stack-on-phone tbody, .table.stack-on-phone tr, .table.stack-on-phone td { display: block; width: 100%; }
+  .table.stack-on-phone tr { padding: 12px 16px; border-top: 1px solid var(--line); }
+  .table.stack-on-phone tr:first-child { border-top: 0; }
+  .table.stack-on-phone td { border: 0; padding: 4px 0; }
+  .table.stack-on-phone td[data-label]::before { content: attr(data-label) " · "; color: var(--muted); font-size: 12px; }
+  .reset-password form { min-width: 0; }
 }

@@ -7,7 +7,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import pg from 'pg';
-import { testDatabaseUrl, freshDatabase, startPortal } from './helpers.js';
+import { testDatabaseUrl, freshDatabase, migrationFiles, startPortal } from './helpers.js';
 
 const serverScript = fileURLToPath(new URL('../src/server.js', import.meta.url));
 
@@ -52,7 +52,7 @@ test('the server migrates an empty database, serves the portal and stops cleanly
   const check = new pg.Client({ connectionString: testDatabaseUrl() });
   await check.connect();
   t.after(() => check.end());
-  assert.equal((await check.query('SELECT count(*)::int AS n FROM migrations')).rows[0].n, 2);
+  assert.deepEqual((await check.query('SELECT name FROM migrations ORDER BY name')).rows.map(r => r.name), await migrationFiles());
 });
 
 test('the server refuses to start with an unsafe configuration', async () => {

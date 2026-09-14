@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { freshDatabase } from './helpers.js';
+import { freshDatabase, migrationFiles } from './helpers.js';
 import { migrate, transaction } from '../src/db.js';
 
 test('migrations apply once and seed the initial catalog', async t => {
@@ -8,7 +8,7 @@ test('migrations apply once and seed the initial catalog', async t => {
   t.after(() => pool.end());
   await migrate(pool);
   await Promise.all([migrate(pool), migrate(pool)]);
-  assert.equal((await pool.query('SELECT count(*)::int AS n FROM migrations')).rows[0].n, 2);
+  assert.deepEqual((await pool.query('SELECT name FROM migrations ORDER BY name')).rows.map(r => r.name), await migrationFiles());
   const sites = (await pool.query('SELECT name_en, status, url FROM sites ORDER BY sort_order')).rows;
   assert.deepEqual(sites, [
     { name_en: 'IT HelpDesk', status: 'published', url: 'https://helpdesk.seg.com' },

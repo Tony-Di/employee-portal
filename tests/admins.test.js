@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { freshDatabase, PASSWORD } from './helpers.js';
-import { authenticate, createAdmin, findActiveAdmin, resetPassword, setAdminActive } from '../src/services/admins.js';
+import { authenticate, createAdmin, deactivateAdmin, findActiveAdmin, resetPassword, setAdminActive } from '../src/services/admins.js';
 
 async function db(t) {
   const pool = await freshDatabase();
@@ -52,4 +52,13 @@ test('resetting a password replaces the old one', async t => {
   assert.equal(await authenticate(pool, 'ada@example.com', PASSWORD), null);
   assert.ok(await authenticate(pool, 'ada@example.com', 'a brand new password'));
   assert.equal(await resetPassword(pool, 'missing@example.com', 'a brand new password'), false);
+});
+
+test('two admins deactivating each other at the same time cannot leave zero active admins', async t => {
+  const pool = await db(t);
+  const a = await createAdmin(pool, { name: 'A', email: 'a@example.com', password: PASSWORD });
+  const b = await createAdmin(pool, { name: 'B', email: 'b@example.com', password: PASSWORD });
+  const results = await Promise.allSettled([deactivateAdmin(pool, a.id, b.id), deactivateAdmin(pool, b.id, a.id)]);
+  assert.equal(results.filter(r => r.status === 'fulfilled').length, 1);
+  assert.equal((await pool.query('SELECT count(*)::int AS n FROM admins WHERE active')).rows[0].n, 1);
 });

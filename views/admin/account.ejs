@@ -1,0 +1,30 @@
+<%- include('../partials/admin-head', { title: t('我的账号', 'My account') }) %>
+<% const err = field => errors[field] ? tp(errors[field]) : ''; %>
+<div class="page-head">
+  <div>
+    <h1><%= t('我的账号', 'My account') %></h1>
+    <p class="hint"><%= admin.name %> · <%= admin.email %></p>
+  </div>
+</div>
+
+<form class="panel editor-form narrow-form" method="post" action="/admin/account/password" novalidate>
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <h2 class="panel-title"><%= t('修改密码', 'Change password') %></h2>
+  <div class="field<%= err('current_password') ? ' has-error' : '' %>">
+    <label for="current_password"><%= t('当前密码', 'Current password') %></label>
+    <input id="current_password" name="current_password" type="password" maxlength="128" autocomplete="current-password">
+    <% if (err('current_password')) { %><p class="field-error"><%= err('current_password') %></p><% } %>
+  </div>
+  <div class="field<%= err('password') ? ' has-error' : '' %>">
+    <label for="password"><%= t('新密码', 'New password') %></label>
+    <input id="password" name="password" type="password" minlength="12" maxlength="128" autocomplete="new-password">
+  </div>
+  <div class="field<%= err('password') ? ' has-error' : '' %>">
+    <label for="password_confirm"><%= t('再次输入新密码', 'Repeat new password') %></label>
+    <input id="password_confirm" name="password_confirm" type="password" minlength="12" maxlength="128" autocomplete="new-password">
+    <% if (err('password')) { %><p class="field-error"><%= err('password') %></p><% } %>
+  </div>
+  <p class="hint"><%= t('至少 12 位。修改后，你在其他设备上的登录会退出，当前页面保持登录。', 'At least 12 characters. Other devices are signed out; this one stays signed in.') %></p>
+  <div class="form-actions"><button class="button primary" type="submit"><%= t('修改密码', 'Change password') %></button></div>
+</form>
+<%- include('../partials/admin-foot') %>

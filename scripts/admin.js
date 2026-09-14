@@ -69,7 +69,7 @@ try {
     console.log(`Created admin ${admin.email}.`);
   } else if (command === 'reset-password') {
     found(await resetPassword(pool, values.email, await askNewPassword()));
-    console.log(`Password updated for ${values.email}. Existing sessions stay valid until they expire or the admin is deactivated.`);
+    console.log(`Password updated for ${values.email}. Their existing sessions were signed out.`);
   } else if (command === 'deactivate' || command === 'activate') {
     found(await setAdminActive(pool, values.email, command === 'activate'));
     console.log(`${command === 'activate' ? 'Activated' : 'Deactivated'} ${values.email}.`);

@@ -6,11 +6,12 @@
       <a href="/admin/sites" <%- path.startsWith('/admin/sites') ? 'aria-current="page"' : '' %>><%= t('网站', 'Sites') %></a>
       <a href="/admin/categories" <%- path.startsWith('/admin/categories') ? 'aria-current="page"' : '' %>><%= t('分类', 'Categories') %></a>
       <a href="/admin/settings" <%- path.startsWith('/admin/settings') ? 'aria-current="page"' : '' %>><%= t('门户设置', 'Settings') %></a>
+      <a href="/admin/admins" <%- path.startsWith('/admin/admins') ? 'aria-current="page"' : '' %>><%= t('管理员', 'Admins') %></a>
     </nav>
     <div class="admin-user">
       <a href="/" target="_blank" rel="noopener"><%= t('查看首页', 'View portal') %></a>
       <%- include('prefs') %>
-      <span class="muted"><%= admin.name %></span>
+      <a href="/admin/account" title="<%= t('我的账号', 'My account') %>"<%- path.startsWith('/admin/account') ? ' aria-current="page"' : '' %>><%= admin.name %></a>
       <form method="post" action="/admin/logout">
         <input type="hidden" name="_csrf" value="<%= csrf %>">
         <button class="link-button" type="submit"><%= t('退出', 'Sign out') %></button>

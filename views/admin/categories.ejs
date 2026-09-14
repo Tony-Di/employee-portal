@@ -32,7 +32,7 @@
   <p class="empty-state"><%= t('还没有分类。', 'No categories yet.') %></p>
 <% } else { %>
 <div class="panel table-wrap">
-  <table class="table">
+  <table class="table stack-on-phone">
     <thead><tr><th><%= t('名称 / 英文名称', 'Name / English name') %></th><th><%= t('网站数', 'Sites') %></th><th><%= t('操作', 'Actions') %></th></tr></thead>
     <tbody>
     <% categories.forEach((c, index) => { const current = editingId === c.id ? editing : c; %>
@@ -46,7 +46,7 @@
           </form>
           <% if (editingId === c.id && err('name')) { %><p class="field-error"><%= err('name') %></p><% } %>
         </td>
-        <td><%= c.site_count %></td>
+        <td data-label="<%= t('网站数', 'Sites') %>"><%= c.site_count %></td>
         <td>
           <div class="row-actions">
             <form method="post" action="/admin/categories/<%= c.id %>/move">

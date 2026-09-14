@@ -114,6 +114,7 @@ test('signed-out visitors cannot change anything', async t => {
     browser.json('PATCH', '/api/admin/settings', { title: 'x' }),
     browser.json('DELETE', `/api/admin/categories/${category.id}`),
     browser.upload('/api/admin/media', {}, { file: { buffer: PNG, name: 'l.png' } }),
+    browser.post('/admin/admins', { name: 'x', email: 'x@example.com', password: 'a long enough password', password_confirm: 'a long enough password' }),
   ];
   for (const res of await Promise.all(attempts)) assert.ok([302, 401].includes(res.status), `status ${res.status}`);
   const after = JSON.stringify((await p.pool.query('SELECT * FROM sites ORDER BY id')).rows) + JSON.stringify((await p.pool.query('SELECT * FROM categories ORDER BY id')).rows) + JSON.stringify(await getSettings(p.pool));

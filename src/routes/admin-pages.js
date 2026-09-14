@@ -3,7 +3,9 @@ import { rateLimit } from 'express-rate-limit';
 import { csrfToken, regenerate, saveSession, verifyCsrf } from '../auth.js';
 import { ConflictError, NotFoundError, ValidationError } from '../errors.js';
 import { ICON_LABELS } from '../icons.js';
-import { authenticate, hasAdmins } from '../services/admins.js';
+import {
+  activateAdmin, authenticate, changeOwnPassword, createAdmin, deactivateAdmin, getAdmin, hasAdmins, listAdmins, resetAdminPassword,
+} from '../services/admins.js';
 import { createCategory, deleteCategory, getCategory, listCategories, moveCategory, updateCategory } from '../services/categories.js';
 import { saveMedia } from '../services/media.js';
 import { getSettings } from '../services/portal.js';
@@ -45,6 +47,7 @@ export function adminPages({ config, pool }) {
     }
     await regenerate(req);
     req.session.adminId = admin.id;
+    req.session.adminEpoch = admin.session_epoch;
     await saveSession(req);
     res.redirect(303, '/admin/sites');
   });
@@ -220,6 +223,69 @@ export function adminPages({ config, pool }) {
     } catch (error) {
       if (!isFormError(error)) throw error;
       await renderSettings(req, res, error.status, { values: body, errors: error.errors ?? {}, conflict: error.messagePair });
+    }
+  });
+
+  // ---- Admin accounts ----
+  const renderAdmins = async (req, res, status, { values = {}, errors = {} } = {}) =>
+    res.status(status).render('admin/admins', { admins: await listAdmins(pool), values, errors });
+
+  router.get('/admins', (req, res) => renderAdmins(req, res, 200));
+
+  router.post('/admins', verifyCsrf, async (req, res) => {
+    try {
+      const created = await createAdmin(pool, req.body);
+      flash(req, 'success', [`已添加管理员 ${created.email}，对方现在可以用这个邮箱和密码登录。`, `Added ${created.email}. They can now sign in with this email and password.`]);
+      res.redirect(303, '/admin/admins');
+    } catch (error) {
+      if (!(error instanceof ValidationError)) throw error;
+      await renderAdmins(req, res, 422, { values: { name: req.body.name, email: req.body.email }, errors: error.errors });
+    }
+  });
+
+  router.post('/admins/:id/active', verifyCsrf, async (req, res) => {
+    const target = await getAdmin(pool, req.params.id);
+    try {
+      if (req.body.active === '1') {
+        await activateAdmin(pool, target.id);
+        flash(req, 'success', [`已恢复 ${target.email}。`, `Restored ${target.email}.`]);
+      } else {
+        await deactivateAdmin(pool, target.id, req.admin.id);
+        flash(req, 'success', [`已停用 ${target.email}，其登录已立即失效。`, `Deactivated ${target.email}; their sessions ended immediately.`]);
+      }
+    } catch (error) {
+      if (!(error instanceof ConflictError)) throw error;
+      flash(req, 'error', error.messagePair);
+    }
+    res.redirect(303, '/admin/admins');
+  });
+
+  router.post('/admins/:id/password', verifyCsrf, async (req, res) => {
+    const target = await getAdmin(pool, req.params.id);
+    if (target.id === req.admin.id) {
+      flash(req, 'error', ['请在“我的账号”中修改自己的密码。', 'Change your own password under My account.']);
+      return res.redirect(303, '/admin/account');
+    }
+    try {
+      await resetAdminPassword(pool, target.id, req.body);
+      flash(req, 'success', [`${target.email} 的密码已重置，对方需要用新密码重新登录。`, `Password reset for ${target.email}. They must sign in again with the new password.`]);
+    } catch (error) {
+      if (!(error instanceof ValidationError)) throw error;
+      flash(req, 'error', Object.values(error.errors)[0]);
+    }
+    res.redirect(303, '/admin/admins');
+  });
+
+  router.get('/account', (req, res) => res.render('admin/account', { errors: {} }));
+
+  router.post('/account/password', verifyCsrf, async (req, res) => {
+    try {
+      req.session.adminEpoch = await changeOwnPassword(pool, req.admin.id, req.body);
+      flash(req, 'success', ['密码已修改，其他设备上的登录已退出。', 'Password changed. Sessions on other devices were signed out.']);
+      res.redirect(303, '/admin/account');
+    } catch (error) {
+      if (!(error instanceof ValidationError)) throw error;
+      res.status(422).render('admin/account', { errors: error.errors });
     }
   });
 

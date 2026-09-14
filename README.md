@@ -38,7 +38,14 @@ npm run dev                                    # http://localhost:3100, admin at
 
 ## Admin accounts
 
-There is no sign-up page: the portal is read-only for employees, and only people given an account can change it. Whoever runs the server creates admin accounts from the command line, which is why the first admin cannot register in the browser. Until one exists, `/admin/login` shows the command to run.
+There is no sign-up page: the portal is read-only for employees, and only people given an account can change it. The **first** admin is created on the server from the command line (until one exists, `/admin/login` shows the command). After that, admins manage each other in the browser under **Admins**:
+
+- add an admin (name, email, initial password of 12+ characters)
+- deactivate or restore an admin — deactivation ends their sessions immediately; you cannot deactivate yourself or the last active admin
+- reset another admin's password — their existing sessions end
+- change your own password under **My account** (click your name) — your other sessions end, the current one stays signed in
+
+The command-line tools below remain available on the server as a fallback, for example if every admin is locked out.
 
 ```bash
 npm run admin -- create --email you@segsolar.com --name "Your Name"   # locally

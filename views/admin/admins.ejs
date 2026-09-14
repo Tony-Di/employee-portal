@@ -1,0 +1,84 @@
+<%- include('../partials/admin-head', { title: t('管理员', 'Admins') }) %>
+<%
+  const err = field => errors[field] ? tp(errors[field]) : '';
+  const activeCount = admins.filter(a => a.active).length;
+  const dateFormat = new Intl.DateTimeFormat(lang === 'en' ? 'en-US' : 'zh-CN', { year: 'numeric', month: 'short', day: 'numeric' });
+%>
+<div class="page-head">
+  <div>
+    <h1><%= t('管理员', 'Admins') %></h1>
+    <p class="hint"><%= t('管理员可以登录后台，维护网站、分类和门户设置。员工浏览首页不需要账号。', 'Admins can sign in to maintain sites, categories and settings. Employees do not need an account to use the portal.') %></p>
+  </div>
+</div>
+
+<form class="panel editor-form" method="post" action="/admin/admins" novalidate>
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <h2 class="panel-title"><%= t('添加管理员', 'Add admin') %></h2>
+  <div class="field-row">
+    <div class="field<%= err('name') ? ' has-error' : '' %>">
+      <label for="admin-name"><%= t('姓名', 'Name') %></label>
+      <input id="admin-name" name="name" value="<%= values.name || '' %>" maxlength="100" autocomplete="off">
+      <% if (err('name')) { %><p class="field-error"><%= err('name') %></p><% } %>
+    </div>
+    <div class="field<%= err('email') ? ' has-error' : '' %>">
+      <label for="admin-email"><%= t('邮箱（登录用）', 'Email (used to sign in)') %></label>
+      <input id="admin-email" name="email" type="email" value="<%= values.email || '' %>" maxlength="254" autocomplete="off" placeholder="name@segsolar.com">
+      <% if (err('email')) { %><p class="field-error"><%= err('email') %></p><% } %>
+    </div>
+  </div>
+  <div class="field-row">
+    <div class="field<%= err('password') ? ' has-error' : '' %>">
+      <label for="admin-password"><%= t('初始密码', 'Initial password') %></label>
+      <input id="admin-password" name="password" type="password" minlength="12" maxlength="128" autocomplete="new-password">
+    </div>
+    <div class="field<%= err('password') ? ' has-error' : '' %>">
+      <label for="admin-password-confirm"><%= t('再次输入密码', 'Repeat password') %></label>
+      <input id="admin-password-confirm" name="password_confirm" type="password" minlength="12" maxlength="128" autocomplete="new-password">
+    </div>
+  </div>
+  <% if (err('password')) { %><p class="field-error"><%= err('password') %></p><% } %>
+  <p class="hint"><%= t('密码至少 12 位。把初始密码私下告诉同事，并提醒对方登录后在“我的账号”里修改。', 'At least 12 characters. Share it privately and ask them to change it under My account after signing in.') %></p>
+  <div><button class="button primary" type="submit"><%= t('添加', 'Add') %></button></div>
+</form>
+
+<h2 class="panel-title section-gap"><%= t('全部管理员', 'All admins') %></h2>
+<div class="panel table-wrap">
+  <table class="table stack-on-phone">
+    <thead><tr><th><%= t('姓名 / 邮箱', 'Name / email') %></th><th><%= t('状态', 'Status') %></th><th><%= t('添加时间', 'Added') %></th><th><%= t('操作', 'Actions') %></th></tr></thead>
+    <tbody>
+    <% for (const a of admins) { const isSelf = a.id === admin.id; %>
+      <tr data-admin="<%= a.id %>">
+        <td>
+          <strong><%= a.name %></strong><% if (isSelf) { %> <span class="muted"><%= t('（你）', '(you)') %></span><% } %>
+          <div class="site-meta"><%= a.email %></div>
+        </td>
+        <td data-label="<%= t('状态', 'Status') %>"><span class="status <%= a.active ? 'status-published' : 'status-hidden' %>"><%= a.active ? t('启用中', 'Active') : t('已停用', 'Deactivated') %></span></td>
+        <td class="muted" data-label="<%= t('添加时间', 'Added') %>"><%= dateFormat.format(a.created_at) %></td>
+        <td>
+          <div class="row-actions admin-actions">
+            <% if (isSelf) { %>
+              <a class="button small" href="/admin/account"><%= t('修改我的密码', 'Change my password') %></a>
+            <% } else { %>
+              <form method="post" action="/admin/admins/<%= a.id %>/active"<% if (a.active) { %> data-confirm="<%= t(`确定停用 ${a.email} 吗？对方会立即退出登录。`, `Deactivate ${a.email}? They will be signed out immediately.`) %>"<% } %>>
+                <input type="hidden" name="_csrf" value="<%= csrf %>">
+                <input type="hidden" name="active" value="<%= a.active ? '0' : '1' %>">
+                <button class="button small<%= a.active ? ' danger' : '' %>" type="submit"<%= a.active && activeCount <= 1 ? ' disabled' : '' %>><%= a.active ? t('停用', 'Deactivate') : t('恢复', 'Restore') %></button>
+              </form>
+              <details class="reset-password">
+                <summary class="button small"><%= t('重置密码', 'Reset password') %></summary>
+                <form method="post" action="/admin/admins/<%= a.id %>/password" class="inline-form">
+                  <input type="hidden" name="_csrf" value="<%= csrf %>">
+                  <input name="password" type="password" minlength="12" maxlength="128" autocomplete="new-password" required aria-label="<%= t('新密码', 'New password') %>" placeholder="<%= t('新密码（至少 12 位）', 'New password (12+)') %>">
+                  <input name="password_confirm" type="password" minlength="12" maxlength="128" autocomplete="new-password" required aria-label="<%= t('再次输入', 'Repeat') %>" placeholder="<%= t('再次输入', 'Repeat') %>">
+                  <button class="button small primary" type="submit"><%= t('保存', 'Save') %></button>
+                </form>
+              </details>
+            <% } %>
+          </div>
+        </td>
+      </tr>
+    <% } %>
+    </tbody>
+  </table>
+</div>
+<%- include('../partials/admin-foot') %>
