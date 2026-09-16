@@ -114,6 +114,18 @@ test('catalog search matches names, descriptions and keywords in either language
   assert.deepEqual(names((await publicCatalog(pool, { q: '100%_' })).sites), []);
 });
 
+test('public and admin searches rank multiword matches consistently while respecting visibility and status', async t => {
+  const pool = await db(t);
+  await createSite(pool, { name: 'Guide', description: 'IT support', url: 'https://guide.example.com', status: 'published' });
+  await createSite(pool, { name: 'Support', keywords: 'IT', url: 'https://desk.example.com', status: 'published' });
+  await createSite(pool, { name: 'IT Support', status: 'draft' });
+  assert.deepEqual(names((await publicCatalog(pool, { q: 'IT support' })).sites), ['Support', 'Guide']);
+  assert.deepEqual(names(await listSites(pool, { q: 'IT support' })), ['IT Support', 'Support', 'Guide']);
+  assert.deepEqual(names(await listSites(pool, { q: 'IT support', status: 'published' })), ['Support', 'Guide']);
+  assert.deepEqual(names(await listSites(pool, { q: 'desk.example IT' })), ['Support']);
+  assert.deepEqual((await publicCatalog(pool, { q: 'desk.example' })).sites, []);
+});
+
 test('an edit based on a stale version is refused and changes nothing', async t => {
   const pool = await db(t);
   const site = await createSite(pool, { name: 'A', url: 'https://a.example.com', status: 'published' });

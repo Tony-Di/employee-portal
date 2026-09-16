@@ -95,6 +95,20 @@ test('an empty catalog shows a friendly message', async t => {
   assert.match(res.text, /还没有可用的网站/);
 });
 
+test('server-rendered search combines words, ranks names first and respects categories', async t => {
+  const p = await portal(t);
+  const category = await createCategory(p.pool, { name: '支持' });
+  await createSite(p.pool, { name: '指南', description: '电脑报修流程', url: 'https://guide.example.com', status: 'published', category_id: category.id });
+  await createSite(p.pool, { name: '电脑服务台', keywords: '报修', url: 'https://support.example.com', status: 'published', category_id: category.id });
+  await createSite(p.pool, { name: '电脑报修', url: 'https://repair.example.com', status: 'published' });
+  await createSite(p.pool, { name: '电脑商城', url: 'https://shop.example.com', status: 'published' });
+  const browser = p.browser();
+  const query = encodeURIComponent('电脑 报修');
+  assert.deepEqual(cardNames((await browser.get(`/?q=${query}`)).text), ['电脑报修', '电脑服务台', '指南']);
+  assert.deepEqual(cardNames((await browser.get(`/?q=${query}&category=${category.id}`)).text), ['电脑服务台', '指南']);
+  assert.deepEqual(cardNames((await browser.get('/')).text), ['指南', '电脑服务台', '电脑报修', '电脑商城']);
+});
+
 test('the portal API returns settings, visible categories and visible sites only', async t => {
   const p = await portal(t);
   const cat = await createCategory(p.pool, { name: 'IT' });

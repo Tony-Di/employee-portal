@@ -110,6 +110,7 @@
       <div class="field<%= err('keywords') ? ' has-error' : '' %>">
         <label for="keywords"><%= t('搜索关键词', 'Search keywords') %></label>
         <input id="keywords" name="keywords" value="<%= val('keywords') %>" maxlength="300" placeholder="<%= t('如：报修, 电脑, 网络', 'e.g. repair, laptop, network') %>">
+        <p class="hint"><%= t('填写别名、简称或常用搜索词，例如“服务台、工单、help desk”。员工可以用这些词找到此网站。', 'Add aliases, abbreviations or common search words, such as “help desk, IT support, ticket”. Employees can find this site using these terms.') %></p>
         <% if (err('keywords')) { %><p class="field-error"><%= err('keywords') %></p><% } %>
       </div>
     </div>

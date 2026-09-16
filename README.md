@@ -8,6 +8,7 @@ A single homepage where employees find company applications, with an admin conso
 - Light / dark mode toggle (defaults to the system setting), remembered per browser
 - Sites: draft, published, hidden, placeholder; drag-and-drop or ↑/↓ ordering; preset icons or uploaded images
 - Categories, portal title/description/logo, default language
+- Search: space-separated words can match across bilingual names, descriptions and aliases; every word must match. Exact names rank first, then name matches, then keyword matches, with configured order breaking ties. Clearing search restores the configured order. Admin search also includes URLs.
 - SEG Solar branding (logo, Kanit typeface, red/navy palette, following segsolar.com); an uploaded logo replaces the default
 - Admin email/password accounts managed from the command line
 

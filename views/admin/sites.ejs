@@ -18,7 +18,7 @@
 
 <form class="toolbar" method="get" action="/admin/sites" role="search">
   <label class="visually-hidden" for="site-q"><%= t('搜索', 'Search') %></label>
-  <input id="site-q" type="search" name="q" value="<%= q %>" placeholder="<%= t('搜索名称、地址或关键词', 'Search name, address or keyword') %>">
+  <input id="site-q" type="search" name="q" value="<%= q %>" maxlength="100" placeholder="<%= t('搜索名称、地址或关键词，多个词用空格分开', 'Search name, address or keyword; separate words with spaces') %>">
   <label class="visually-hidden" for="site-status"><%= t('状态', 'Status') %></label>
   <select id="site-status" name="status">
     <option value=""><%= t('全部状态', 'All statuses') %></option>
@@ -29,6 +29,8 @@
   <button class="button" type="submit"><%= t('筛选', 'Filter') %></button>
   <% if (filtered) { %><a class="button" href="/admin/sites"><%= t('清除', 'Clear') %></a><% } %>
 </form>
+
+<% if (q) { %><p class="hint"><%= t('多个搜索词需同时匹配；名称匹配优先，同等匹配按原顺序显示。清除搜索可查看首页顺序。', 'All search words must match. Name matches appear first; equal matches keep their original order. Clear search to see the portal order.') %></p><% } %>
 
 <% if (!sites.length) { %>
   <p class="empty-state"><%= filtered ? t('没有符合条件的网站。', 'No sites match these filters.') : t('还没有网站，点击“新增网站”开始。', 'No sites yet. Choose “Add site” to start.') %></p>

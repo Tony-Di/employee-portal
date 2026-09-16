@@ -1,6 +1,7 @@
 import express from 'express';
 import { publicCatalog } from '../services/portal.js';
 import { uploadDir } from '../services/media.js';
+import { searchSites } from '../../public/js/search.js';
 
 export function publicRoutes({ config, pool }) {
   const router = express.Router();
@@ -12,10 +13,12 @@ export function publicRoutes({ config, pool }) {
     const q = String(req.query.q ?? '').trim().slice(0, 100);
     const category = String(req.query.category ?? '');
     const catalog = await publicCatalog(pool);
-    const filtered = q || category ? await publicCatalog(pool, { q, category }) : catalog;
-    const matches = new Set(filtered.sites.map(s => s.id));
+    const filtered = searchSites(catalog.sites, q, { category });
+    const matches = new Set(filtered.map(s => s.id));
+    const siteOrder = new Map(catalog.sites.map((site, index) => [site.id, index]));
+    const sites = [...filtered, ...catalog.sites.filter(site => !matches.has(site.id))];
     res.set('Cache-Control', 'no-store');
-    res.render('home', { ...catalog, matches, q, category, bodyClass: 'home' });
+    res.render('home', { ...catalog, sites, siteOrder, matches, q, category, bodyClass: 'home' });
   });
 
   // Browsers request /favicon.ico regardless of the <link rel="icon">.

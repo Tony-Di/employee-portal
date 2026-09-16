@@ -1,8 +1,9 @@
 import { transaction } from '../db.js';
 import { ConflictError, NotFoundError, ValidationError } from '../errors.js';
 import { ICONS } from '../icons.js';
-import { bool, last, likePattern, maxLength, mediaExists, parseId, text } from './input.js';
+import { bool, last, maxLength, mediaExists, parseId, text } from './input.js';
 import { moveRow, nextSortOrder, reorderRows } from './ordering.js';
+import { searchSites } from '../../public/js/search.js';
 
 export const STATUSES = ['draft', 'published', 'hidden', 'placeholder'];
 const FIELDS = ['name', 'name_en', 'description', 'description_en', 'url', 'icon_key', 'media_id', 'category_id', 'keywords', 'open_in_new_tab', 'status'];
@@ -62,12 +63,8 @@ export async function listSites(db, { q = '', status = '' } = {}) {
   const where = [];
   const params = [];
   if (STATUSES.includes(status)) { params.push(status); where.push(`s.status = $${params.length}`); }
-  if (String(q).trim()) {
-    params.push(likePattern(String(q).trim()));
-    where.push(`concat_ws(' ', s.name, s.name_en, s.description, s.description_en, s.keywords, s.url) ILIKE $${params.length}`);
-  }
   const { rows } = await db.query(`${SELECT} ${where.length ? `WHERE ${where.join(' AND ')}` : ''} ORDER BY s.sort_order, s.id`, params);
-  return rows;
+  return searchSites(rows, q, { includeUrl: true });
 }
 
 export async function createSite(pool, input, adminId = null) {
