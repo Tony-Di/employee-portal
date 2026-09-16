@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { setTimeout as delay } from 'node:timers/promises';
 import { freshDatabase } from './helpers.js';
 import { createSite, getSite, listSites, moveSite, reorderSites, setSiteStatus, updateSite } from '../src/services/sites.js';
 import { publicCatalog } from '../src/services/portal.js';
@@ -21,6 +22,28 @@ async function rejectsWith(promise, fields) {
 }
 
 const names = sites => sites.map(s => s.name || s.name_en);
+
+// Hold the row until both writers are waiting, so the overlap is deterministic.
+async function concurrentEdits(pool, siteId, edits) {
+  const blocker = await pool.connect();
+  let results;
+  try {
+    await blocker.query('BEGIN');
+    await blocker.query('SELECT 1 FROM sites WHERE id = $1 FOR UPDATE', [siteId]);
+    results = Promise.allSettled(edits.map(input => updateSite(pool, siteId, input)));
+    for (let attempt = 0; attempt < 500; attempt++) {
+      const { rows } = await pool.query(
+        "SELECT count(*)::int AS n FROM pg_stat_activity WHERE datname = current_database() AND wait_event_type = 'Lock'");
+      if (rows[0].n >= edits.length) return results;
+      await delay(10);
+    }
+    assert.fail('Both edits should wait for the locked site before continuing');
+  } finally {
+    await blocker.query('ROLLBACK');
+    blocker.release();
+    await results;
+  }
+}
 
 test('creates a draft with trimmed text, null empty address and next sort order', async t => {
   const pool = await db(t);
@@ -99,6 +122,37 @@ test('an edit based on a stale version is refused and changes nothing', async t 
   assert.equal(updated.version, site.version + 1);
   await assert.rejects(updateSite(pool, site.id, { name: 'C', version: String(site.version) }), ConflictError);
   assert.equal((await getSite(pool, site.id)).name, 'B');
+});
+
+test('simultaneous edits with the same version cannot overwrite each other', async t => {
+  const pool = await db(t);
+  const site = await createSite(pool, { name: 'Original' });
+  const results = await concurrentEdits(pool, site.id, [
+    { name: 'First edit', version: site.version },
+    { name: 'Second edit', version: site.version },
+  ]);
+  const succeeded = results.filter(r => r.status === 'fulfilled');
+  const failed = results.filter(r => r.status === 'rejected');
+  assert.equal(succeeded.length, 1, 'exactly one editor can save the original version');
+  assert.equal(failed.length, 1);
+  assert.ok(failed[0].reason instanceof ConflictError);
+  const saved = await getSite(pool, site.id);
+  assert.equal(saved.name, succeeded[0].value.name);
+  assert.equal(saved.version, site.version + 1);
+});
+
+test('simultaneous partial updates preserve changes to different fields', async t => {
+  const pool = await db(t);
+  const site = await createSite(pool, { name: 'Original', description: 'Original description' });
+  const results = await concurrentEdits(pool, site.id, [
+    { name: 'Updated name' },
+    { description: 'Updated description' },
+  ]);
+  assert.deepEqual(results.map(r => r.status), ['fulfilled', 'fulfilled']);
+  const saved = await getSite(pool, site.id);
+  assert.equal(saved.name, 'Updated name');
+  assert.equal(saved.description, 'Updated description');
+  assert.equal(saved.version, site.version + 2);
 });
 
 test('moving and reordering sites changes the catalog order', async t => {

@@ -19,7 +19,7 @@ export function createApp({ config, pool, logger = console }) {
   app.disable('x-powered-by');
 
   app.use(helmet({
-    contentSecurityPolicy: { directives: { 'img-src': ["'self'", 'data:'], 'upgrade-insecure-requests': config.production ? [] : null } },
+    contentSecurityPolicy: { directives: { 'img-src': ["'self'", 'data:', 'blob:'], 'upgrade-insecure-requests': config.production ? [] : null } },
     strictTransportSecurity: config.production,
   }));
   app.use('/static', express.static(path.join(root, 'public'), { maxAge: config.production ? '1h' : 0 }));

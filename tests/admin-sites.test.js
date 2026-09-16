@@ -137,6 +137,20 @@ test('an uploaded icon is attached to the site and shown on the homepage', async
   assert.equal((await fetch(p.url + src)).status, 200);
 });
 
+test('the site editor allows local image previews while keeping scripts restricted', async t => {
+  const { browser } = await signedIn(t);
+  const page = await browser.get('/admin/sites/new');
+  assert.equal(page.status, 200);
+  const policy = Object.fromEntries(page.headers.get('content-security-policy').split(';').map(directive => {
+    const [name, ...sources] = directive.trim().split(/\s+/);
+    return [name, sources];
+  }));
+  assert.ok(policy['img-src'].includes('blob:'), 'file selections use blob URLs before upload');
+  assert.ok(policy['img-src'].includes("'self'"), 'saved images remain available');
+  assert.ok(!policy['script-src'].includes('blob:'), 'image previews do not need blob scripts');
+  assert.ok(!policy['script-src'].includes("'unsafe-inline'"));
+});
+
 test('an invalid icon upload is rejected and nothing is saved', async t => {
   const { p, browser } = await signedIn(t);
   await browser.get('/admin/sites/new');

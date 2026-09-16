@@ -85,8 +85,9 @@ export async function createSite(pool, input, adminId = null) {
 // Fields missing from input keep their saved value, so JSON clients can send partial updates.
 export async function updateSite(pool, id, input, adminId = null) {
   return transaction(pool, async client => {
+    // Read the version and merge partial edits only after earlier writers finish.
+    await client.query('SELECT 1 FROM sites WHERE id = $1 FOR UPDATE', [parseId(id)]);
     const current = await getSite(client, id);
-    await client.query('SELECT 1 FROM sites WHERE id = $1 FOR UPDATE', [current.id]);
     if (input.version !== undefined && Number(last(input.version)) !== current.version) {
       throw new ConflictError(['该网站已被其他管理员修改，请刷新后再编辑。', 'Someone else changed this site. Reload it before editing.']);
     }
