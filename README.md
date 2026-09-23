@@ -41,7 +41,7 @@ npm run dev                                    # http://localhost:3100, admin at
 
 There is no sign-up page: the portal is read-only for employees, and only people given an account can change it. The **first** admin is created on the server from the command line (until one exists, `/admin/login` shows the command). After that, admins manage each other in the browser under **Admins**:
 
-- add an admin (name, email, initial password of 12+ characters)
+- add an admin (name, email, initial password of 6+ characters)
 - deactivate or restore an admin — deactivation ends their sessions immediately; you cannot deactivate yourself or the last active admin
 - reset another admin's password — their existing sessions end
 - change your own password under **My account** (click your name) — your other sessions end, the current one stays signed in

@@ -4,8 +4,8 @@ import { promisify } from 'node:util';
 const deriveKey = promisify(scrypt);
 
 export async function hashPassword(password) {
-  if (typeof password !== 'string' || password.length < 12 || password.length > 128) {
-    throw new Error('Password must contain 12–128 characters.');
+  if (typeof password !== 'string' || password.length < 6 || password.length > 128) {
+    throw new Error('Password must contain 6–128 characters.');
   }
   const salt = randomBytes(16).toString('hex');
   const key = await deriveKey(password, salt, 64);

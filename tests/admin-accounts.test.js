@@ -41,9 +41,9 @@ test('an admin can add a colleague who can then sign in', async t => {
 test('adding an admin reports invalid input, keeps name and email but never echoes the password', async t => {
   const { p, browser } = await signedIn(t);
   await browser.get('/admin/admins');
-  const short = await browser.post('/admin/admins', { name: '同事', email: 'c@example.com', password: '123456', password_confirm: '123456' });
+  const short = await browser.post('/admin/admins', { name: '同事', email: 'c@example.com', password: '12345', password_confirm: '12345' });
   assert.equal(short.status, 422);
-  assert.match(short.text, /密码需为 12–128 个字符/);
+  assert.match(short.text, /密码需为 6–128 个字符/);
   assert.match(short.text, /value="同事"/);
   assert.match(short.text, /value="c@example.com"/);
   assert.doesNotMatch(short.text, /value="123456"/);
@@ -104,7 +104,7 @@ test('a password reset with an invalid password is reported and changes nothing'
   const colleague = await createAdmin(p.pool, { name: 'Colleague', email: 'colleague@example.com', password: PASSWORD });
   await browser.get('/admin/admins');
   const res = await browser.post(`/admin/admins/${colleague.id}/password`, { password: 'short', password_confirm: 'short' });
-  assert.match((await browser.get(res.location)).text, /密码需为 12–128 个字符/);
+  assert.match((await browser.get(res.location)).text, /密码需为 6–128 个字符/);
   assert.ok(await authenticate(p.pool, 'colleague@example.com', PASSWORD));
 });
 

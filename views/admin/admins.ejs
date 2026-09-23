@@ -29,15 +29,15 @@
   <div class="field-row">
     <div class="field<%= err('password') ? ' has-error' : '' %>">
       <label for="admin-password"><%= t('初始密码', 'Initial password') %></label>
-      <input id="admin-password" name="password" type="password" minlength="12" maxlength="128" autocomplete="new-password">
+      <input id="admin-password" name="password" type="password" minlength="6" maxlength="128" autocomplete="new-password">
     </div>
     <div class="field<%= err('password') ? ' has-error' : '' %>">
       <label for="admin-password-confirm"><%= t('再次输入密码', 'Repeat password') %></label>
-      <input id="admin-password-confirm" name="password_confirm" type="password" minlength="12" maxlength="128" autocomplete="new-password">
+      <input id="admin-password-confirm" name="password_confirm" type="password" minlength="6" maxlength="128" autocomplete="new-password">
     </div>
   </div>
   <% if (err('password')) { %><p class="field-error"><%= err('password') %></p><% } %>
-  <p class="hint"><%= t('密码至少 12 位。把初始密码私下告诉同事，并提醒对方登录后在“我的账号”里修改。', 'At least 12 characters. Share it privately and ask them to change it under My account after signing in.') %></p>
+  <p class="hint"><%= t('密码至少 6 位。把初始密码私下告诉同事，并提醒对方登录后在“我的账号”里修改。', 'At least 6 characters. Share it privately and ask them to change it under My account after signing in.') %></p>
   <div><button class="button primary" type="submit"><%= t('添加', 'Add') %></button></div>
 </form>
 
@@ -68,8 +68,8 @@
                 <summary class="button small"><%= t('重置密码', 'Reset password') %></summary>
                 <form method="post" action="/admin/admins/<%= a.id %>/password" class="inline-form">
                   <input type="hidden" name="_csrf" value="<%= csrf %>">
-                  <input name="password" type="password" minlength="12" maxlength="128" autocomplete="new-password" required aria-label="<%= t('新密码', 'New password') %>" placeholder="<%= t('新密码（至少 12 位）', 'New password (12+)') %>">
-                  <input name="password_confirm" type="password" minlength="12" maxlength="128" autocomplete="new-password" required aria-label="<%= t('再次输入', 'Repeat') %>" placeholder="<%= t('再次输入', 'Repeat') %>">
+                  <input name="password" type="password" minlength="6" maxlength="128" autocomplete="new-password" required aria-label="<%= t('新密码', 'New password') %>" placeholder="<%= t('新密码（至少 6 位）', 'New password (6+)') %>">
+                  <input name="password_confirm" type="password" minlength="6" maxlength="128" autocomplete="new-password" required aria-label="<%= t('再次输入', 'Repeat') %>" placeholder="<%= t('再次输入', 'Repeat') %>">
                   <button class="button small primary" type="submit"><%= t('保存', 'Save') %></button>
                 </form>
               </details>

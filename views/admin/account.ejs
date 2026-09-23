@@ -17,14 +17,14 @@
   </div>
   <div class="field<%= err('password') ? ' has-error' : '' %>">
     <label for="password"><%= t('新密码', 'New password') %></label>
-    <input id="password" name="password" type="password" minlength="12" maxlength="128" autocomplete="new-password">
+    <input id="password" name="password" type="password" minlength="6" maxlength="128" autocomplete="new-password">
   </div>
   <div class="field<%= err('password') ? ' has-error' : '' %>">
     <label for="password_confirm"><%= t('再次输入新密码', 'Repeat new password') %></label>
-    <input id="password_confirm" name="password_confirm" type="password" minlength="12" maxlength="128" autocomplete="new-password">
+    <input id="password_confirm" name="password_confirm" type="password" minlength="6" maxlength="128" autocomplete="new-password">
     <% if (err('password')) { %><p class="field-error"><%= err('password') %></p><% } %>
   </div>
-  <p class="hint"><%= t('至少 12 位。修改后，你在其他设备上的登录会退出，当前页面保持登录。', 'At least 12 characters. Other devices are signed out; this one stays signed in.') %></p>
+  <p class="hint"><%= t('至少 6 位。修改后，你在其他设备上的登录会退出，当前页面保持登录。', 'At least 6 characters. Other devices are signed out; this one stays signed in.') %></p>
   <div class="form-actions"><button class="button primary" type="submit"><%= t('修改密码', 'Change password') %></button></div>
 </form>
 <%- include('../partials/admin-foot') %>

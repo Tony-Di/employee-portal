@@ -8,7 +8,7 @@
     <strong><%= t('还没有管理员账号', 'No admin account exists yet') %></strong>
     <p><%= t('管理员账号不能在网页上注册，需要由负责部署的人在服务器上创建：', 'Admin accounts are not self-registered. Whoever runs the server creates the first one:') %></p>
     <code>npm run admin -- create --email you@segsolar.com --name "Your Name"</code>
-    <p><%= t('命令会提示输入密码（至少 12 位）。创建后回到这里登录。', 'It prompts for a password (12+ characters). Then sign in here.') %></p>
+    <p><%= t('命令会提示输入密码（至少 6 位）。创建后回到这里登录。', 'It prompts for a password (6+ characters). Then sign in here.') %></p>
   </div>
   <% } %>
   <% if (error) { %><p class="form-error" role="alert"><%= error %></p><% } %>

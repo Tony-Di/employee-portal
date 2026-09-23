@@ -31,7 +31,10 @@ test('rejects duplicate emails and invalid input', async t => {
   await assert.rejects(createAdmin(pool, { name: 'Ada 2', email: 'ADA@example.com', password: PASSWORD }), /already exists/);
   await assert.rejects(createAdmin(pool, { name: '', email: 'b@example.com', password: PASSWORD }), /Name/);
   await assert.rejects(createAdmin(pool, { name: 'B', email: 'not-an-email', password: PASSWORD }), /email/i);
-  await assert.rejects(createAdmin(pool, { name: 'B', email: 'b@example.com', password: 'short' }), /12–128/);
+  await assert.rejects(createAdmin(pool, { name: 'B', email: 'b@example.com', password: 'short' }), /6–128/);
+  const six = await createAdmin(pool, { name: 'C', email: 'c@example.com', password: '123456' });
+  assert.equal(six.email, 'c@example.com');
+  assert.ok(await authenticate(pool, 'c@example.com', '123456'));
 });
 
 test('a deactivated admin can no longer authenticate or use an existing session', async t => {

@@ -13,9 +13,10 @@ test('hashing the same password twice uses different salts', async () => {
   assert.notEqual(await hashPassword('correct horse battery'), await hashPassword('correct horse battery'));
 });
 
-test('rejects passwords outside 12–128 characters', async () => {
-  await assert.rejects(hashPassword('short'), /12–128/);
-  await assert.rejects(hashPassword('x'.repeat(129)), /12–128/);
+test('rejects passwords outside 6–128 characters', async () => {
+  await assert.rejects(hashPassword('short'), /6–128/);
+  await assert.rejects(hashPassword('x'.repeat(129)), /6–128/);
+  assert.equal(await verifyPassword('123456', await hashPassword('123456')), true);
 });
 
 test('malformed stored hashes never verify', async () => {

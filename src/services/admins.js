@@ -11,7 +11,7 @@ const MESSAGES = {
   name: ['请填写姓名（最多 100 个字符）。', 'Name must contain 1–100 characters.'],
   email: ['请输入有效的邮箱地址。', 'Enter a valid email address.'],
   duplicate: ['该邮箱已是管理员。', 'An admin with this email already exists.'],
-  password: ['密码需为 12–128 个字符。', 'Password must contain 12–128 characters.'],
+  password: ['密码需为 6–128 个字符。', 'Password must contain 6–128 characters.'],
   mismatch: ['两次输入的密码不一致。', 'The passwords do not match.'],
   current: ['当前密码不正确。', 'The current password is incorrect.'],
   self: ['不能停用自己的账号。', 'You cannot deactivate your own account.'],
@@ -22,7 +22,7 @@ export const normalizeEmail = email => String(email ?? '').trim().toLowerCase();
 
 // Checks a new password (and its confirmation, when the form sends one) and returns the hash.
 async function newPasswordHash(errors, password, confirm) {
-  if (typeof password !== 'string' || password.length < 12 || password.length > 128) {
+  if (typeof password !== 'string' || password.length < 6 || password.length > 128) {
     errors.password = MESSAGES.password;
     return null;
   }

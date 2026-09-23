@@ -46,7 +46,7 @@ async function askHidden(prompt) {
 }
 
 async function askNewPassword() {
-  const password = await askHidden('New password (12–128 characters): ');
+  const password = await askHidden('New password (6–128 characters): ');
   const confirm = await askHidden('Repeat password: ');
   if (password !== confirm) throw new Error('Passwords do not match.');
   return password;
